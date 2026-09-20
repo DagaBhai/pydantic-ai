@@ -109,7 +109,7 @@ class FallbackModel(Model):
         self,
         default_model: Model | KnownModelName | str,
         *fallback_models: Model | KnownModelName | str,
-        fallback_on: FallbackOn = (ModelAPIError, ModelCapabilityError),
+        fallback_on: FallbackOn = (ModelAPIError,),
     ):
         """Initialize a fallback model instance.
 
@@ -117,13 +117,18 @@ class FallbackModel(Model):
             default_model: The name or instance of the default model to use.
             fallback_models: The names or instances of the fallback models to use upon failure.
             fallback_on: Conditions that trigger fallback to the next model. Accepts:
-                Defaults to `(ModelAPIError, ModelCapabilityError)`. Accepts:
 
-                - A tuple of exception types: `(ModelAPIError, ModelCapabilityError)`
-                - An exception handler (sync or async): `lambda exc: isinstance(exc, MyError)`
-                - A response handler (sync or async): `def check(r: ModelResponse) -> bool`
-                - A sequence mixing all of the above: `[ModelAPIError, exc_handler, response_handler]`
+                Defaults to (ModelAPIError,) only, for backward compatibility. 
+                To also fall back on a request shape this model couldn't express — a str output on a model with supports_text_output=False, 
+                or an output field a smaller model can't be steered to fill — pass fallback_on=(ModelAPIError, ModelCapabilityError) explicitly.
 
+                Accepts:
+
+                    - A tuple of exception types: `(ModelAPIError, ModelCapabilityError)`
+                    - An exception handler (sync or async): `lambda exc: isinstance(exc, MyError)`
+                    - A response handler (sync or async): `def check(r: ModelResponse) -> bool`
+                    - A sequence mixing all of the above: `[ModelAPIError, exc_handler, response_handler]`
+                
                 Handler type is auto-detected by inspecting type hints on the first parameter.
                 If the first parameter is hinted as `ModelResponse`, it's a response handler.
                 Otherwise (including untyped handlers and lambdas), it's an exception handler.
